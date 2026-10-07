@@ -1,0 +1,87 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BRUTAL BLAST</title>
+<style>
+:root{--y:#ffe600;--r:#ff2a2a;--b:#1f3bff;--g:#7dff00;--p:#ff3da5;--w:#f4f0e6}
+*{box-sizing:border-box}body{margin:0;background:var(--w);color:#000;font:900 16px/1.2 "Arial Black",Impact,system-ui,sans-serif;text-transform:uppercase;overflow-x:hidden}
+h1{font:900 clamp(60px,17vw,190px)/.82 Impact,"Arial Black",sans-serif;margin:0 0 14px;letter-spacing:-3px}h1 span{background:var(--y);border:4px solid #000;padding:0 8px;display:inline-block;transform:rotate(-2deg)}
+h2{font-size:clamp(28px,6vw,56px);margin:10px 0}.wrap{max-width:1000px;margin:auto;padding:14px 18px 40px}
+button,input{font:inherit;text-transform:uppercase;color:#000;border:4px solid #000;background:var(--y);box-shadow:8px 8px 0 #000;padding:12px 16px;min-height:56px;margin:0 8px 12px 0;cursor:pointer}
+input{background:#fff;cursor:text;width:100%;max-width:360px;display:block}label,legend{display:block;margin:8px 0}fieldset{border:0;padding:0}
+button:active{transform:translate(5px,5px);box-shadow:3px 3px 0 #000}button[aria-pressed=true]{background:var(--g)}
+:focus-visible{outline:6px solid var(--b);outline-offset:3px}.pri{background:var(--r);color:#fff;font-size:22px}.alt{background:var(--b);color:#fff;font-size:22px}
+.big{width:100%;min-height:42vh;font-size:clamp(40px,12vw,110px);background:var(--r);color:#fff}
+.pl{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin:0 8px 14px 0}
+.pc{border:4px solid #000;box-shadow:8px 8px 0 #000;padding:10px;position:relative;min-width:0;overflow-wrap:anywhere}.c0{background:var(--y)}.c1{background:var(--b);color:#fff}.c2{background:var(--p)}
+.pc .sc{display:block;font-size:44px}.bub{position:absolute;top:-16px;right:-6px;background:#fff;color:#000;border:3px solid #000;padding:2px 8px;font-size:18px}.bub:empty{display:none}
+.hd{display:flex;justify-content:space-between;gap:8px;font-size:clamp(18px,4vw,30px);background:#000;color:var(--g);padding:10px}.ban{background:var(--p);border:4px solid #000;padding:8px;margin:8px 0}
+.blk{border:4px solid #000;box-shadow:8px 8px 0 #000;background:#fff;padding:14px;margin:0 8px 14px 0}.code{font:900 clamp(36px,10vw,90px) Impact,sans-serif;background:var(--g);border:4px solid #000;display:inline-block;padding:0 10px}
+.cd{font:900 clamp(100px,40vw,320px)/1 Impact,sans-serif;text-align:center}.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.g3 button,.gn button{margin:0;min-height:70px;font-size:clamp(16px,4vw,32px);padding:4px}
+.gn{display:grid;gap:8px}.rd{background:var(--r);color:#fff}.gn2{background:var(--g)}table{width:100%;border-collapse:collapse}td,th{border:3px solid #000;padding:6px;text-align:left}
+.pop{position:fixed;font:900 44px Impact,sans-serif;pointer-events:none;animation:up 1s forwards;z-index:9;-webkit-text-stroke:2px #000}.shk{animation:shk .4s}.rx{display:flex;flex-wrap:wrap}.rx button{min-height:44px;padding:4px 10px;margin:0 6px 8px 0;box-shadow:4px 4px 0 #000}
+.demo{display:flex;gap:10px;margin:18px 8px 18px 0}.demo i{flex:1;height:90px;border:4px solid #000;box-shadow:8px 8px 0 #000;animation:bn 1s infinite alternate;font:900 30px/90px Impact;text-align:center;font-style:normal}
+.sr{position:absolute;left:-9999px}@keyframes up{to{transform:translateY(-90px) scale(1.5);opacity:0}}@keyframes shk{25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}@keyframes bn{to{transform:translateY(-22px) rotate(3deg)}}
+.shake{animation:shk .3s}@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body><div id="app"></div><div id="live" class="sr" aria-live="polite"></div>
+<script src="/socket.io/socket.io.js"></script><script>
+const $=s=>document.querySelector(s),A=$('#app'),sock=io(),AV=['😎','🤡','👾','🐸','🔥','💀'];
+const QM=['😂','💀','🔥','😎','😡','🤡','😭','👀','TOO EASY','NO WAY',"YOU'RE DONE",'WATCH THIS','LUCKY!','HAHA','GG'];
+const N={speedtap:['SPEED TAP','TAP AS FAST AS YOU CAN'],dontred:['DON\'T HIT RED','HIT SAFE. AVOID RED (-50)'],memory:['MEMORY BLAST','WATCH, THEN REPEAT THE 5 SYMBOLS'],number:['NUMBER PANIC','PICK NUMBERS THAT ADD UP TO TARGET'],danger:['DANGER BUTTON','SAFE +10 · RISK +30/-20 · CHAOS ±100'],intruder:['CLICK THE INTRUDER','FIND THE DIFFERENT SYMBOL']};
+const SY=['▲','●','■','★','◆'];let S=null,off=0,snd=true,ac,ar=AV[0],sel=[],inp=[],lk='',pend=[],rx={};
+const esc=t=>String(t).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';'),sn=()=>Date.now()+off,say=t=>$('#live').textContent=t;
+function beep(f,d=.1,t='square'){if(!snd)return;try{ac=ac||new(window.AudioContext||webkitAudioContext)();const o=ac.createOscillator(),g=ac.createGain();o.type=t;o.frequency.value=f;g.gain.value=.07;o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+d)}catch(e){}}
+function go(p){history.pushState(0,'',p);route()}addEventListener('popstate',route);
+const form=j=>`<div class=wrap><h2>${j?'JOIN':'CREATE'} ROOM</h2><form id=f data-j="${j}">${j?`<label>ROOM CODE<input name=code required maxlength=9 value="${esc((new URLSearchParams(location.search).get('c')||'BRUTAL-').toUpperCase())}"></label>`:''}<label>USERNAME<input name=name required maxlength=12 autocomplete=off></label><fieldset><legend>AVATAR</legend>${AV.map(a=>`<button type=button data-a=av data-v="${a}" aria-pressed="${a===ar}" aria-label="avatar ${a}">${a}</button>`).join('')}</fieldset><button class=pri>${j?'JOIN':'CREATE'} ROOM</button> <button type=button data-a=go data-v="/">HOME</button><p id=err role=alert></p></form></div>`;
+const home=()=>`<div class=wrap><h1>BRUTAL<br><span>BLAST</span></h1><h2>3 PLAYERS.<br>7 ROUNDS.<br>ABSOLUTE CHAOS.</h2><button class=pri data-a=go data-v=/create>CREATE ROOM</button><button class=alt data-a=go data-v=/join>JOIN ROOM</button>
+<div class=demo aria-hidden=true><i style=background:var(--y)>+50</i><i style=background:var(--b);color:#fff;animation-delay:.3s>×3</i><i style=background:var(--p);animation-delay:.6s>-30</i></div>
+<div class=blk><h2>HOW TO PLAY</h2><ol><li>CREATE A ROOM, SHARE THE CODE.</li><li>READY UP (2–3 PLAYERS).</li><li>7 RANDOM CHALLENGES, ALL AT ONCE. ROUND 7 = ×2.</li><li>COMBOS BOOST POINTS. MISTAKES BREAK THEM.</li><li>MOST POINTS WINS.</li></ol></div></div>`;
+function route(){const p=location.pathname;
+ if(S){const u=({lobby:'/room/',results:'/results/'}[S.phase]||'/game/')+S.code;if(p!==u)history.replaceState(0,'',u);return draw()}
+ const m=p.match(/^\/(?:room|game|results)\/([A-Z0-9-]+)/i);
+ if(m){const c=m[1].toUpperCase(),t=localStorage.getItem('bb_'+c);if(t){A.innerHTML='<div class=wrap><h2>RECONNECTING…</h2></div>';sock.emit('rejoin',{code:c,tok:t},r=>{if(!r||!r.ok){localStorage.removeItem('bb_'+c);go('/join?c='+c)}});return}return go('/join?c='+c)}
+ A.innerHTML=p==='/create'?form(0):p==='/join'?form(1):home()}
+function draw(){if(!$('#stage')){A.innerHTML=`<div class=wrap><div class=hd><span>ROOM ${S.code}</span><button data-a=snd aria-pressed="${snd}" style="min-height:36px;margin:0;padding:2px 8px;box-shadow:none">🔊 SOUND ${snd?'ON':'OFF'}</button></div><div id=board></div><div id=stage></div><h3>TRASH TALK</h3><div class=rx id=rx>${QM.map(q=>`<button data-a=rx data-v="${esc(q)}">${esc(q)}</button>`).join('')}</div></div>`;lk=''}board();stage();pend.splice(0).forEach(fx)}
+function board(){const me=S.players.find(p=>p.id===S.me),rk=[...S.players].sort((a,b)=>b.score-a.score);
+ $('#board').innerHTML=`<div class=pl>${S.players.map((p,i)=>`<div class="pc c${i}" id="c${p.id}"><small>PLAYER 0${i+1}${p.id===S.me?' (YOU)':''}${p.on?'':' · OFFLINE'}${S.phase==='lobby'?(p.ready?' · READY':' · WAITING...'):''}</small><b>${p.av} ${esc(p.name)}</b><small>SCORE</small><span class=sc>${p.score}</span>${p.combo>1?`<div>🔥 COMBO ×${p.combo}</div>`:''}<div class=bub>${rx[p.id]&&rx[p.id].u>Date.now()?esc(rx[p.id].t):''}</div></div>`).join('')}</div><table><caption class=sr>Scoreboard</caption>${rk.map(p=>`<tr><td>${esc(p.name)}</td><td>${p.score}</td></tr>`).join('')}</table>`;
+ const t=$('#tc');if(t&&me)t.textContent=me.taps}
+function fx(e){const c=$('#c'+e.id);if(!c)return;const r=c.getBoundingClientRect(),s=document.createElement('div');s.className='pop';s.textContent=(e.n>0?'+':'')+e.n;s.style.cssText=`left:${r.left+r.width/3}px;top:${r.top+20}px;color:${e.n>0?'#7dff00':'#ff2a2a'}`;document.body.append(s);setTimeout(()=>s.remove(),1000);if(e.n<0)c.classList.add('shake')}
+function stage(f){if(!S)return;const g=S.game,pv=S.priv||{},show=g==='memory'&&S.pub.seq&&sn()<S.pub.hideAt;
+ const k=[S.phase,S.round,g,JSON.stringify(pv),show,S.players.length,S.phase==='lobby'||S.phase==='results'?JSON.stringify(S.players.map(p=>[p.ready,p.score])):'',sel,inp,S.host].join('|');if(k===lk&&!f)return;lk=k;
+ const me=S.players.find(p=>p.id===S.me),host=S.host===S.me,st=$('#stage');let h='';
+ if(S.phase==='lobby'){const rd=S.players.filter(p=>p.ready).length;h=`<h2>SHARE THIS CODE</h2><div class=code>${S.code}</div><p>${S.players.length}/3 PLAYERS · ${rd} READY</p>${host?`<button class=pri data-a=start ${rd<2?'disabled':''}>START (NEED 2 READY)</button>`:`<button class=alt data-a=ready>${me.ready?'UNREADY':'READY'}</button>`}`}
+ else if(S.phase==='intro')h=`<div class=hd><span>ROUND ${S.round}${S.final?' · FINAL ×2':''}</span></div><h2>RANDOM CHALLENGE</h2><h2>${N[g][0]}</h2>${S.ev?`<div class=ban>⚡ ${S.ev}</div>`:''}<div class=cd id=cd aria-hidden=true></div>`;
+ else if(S.phase==='play'){h=`<div class=hd><span>R${S.round}/7 · ${N[g][0]}</span><span id=timer></span></div>${S.final?'<div class=ban>FINAL ROUND ×2 — WHO WANTS IT?</div>':''}${S.ev?`<div class=ban>⚡ ${S.ev}</div>`:''}<p>${N[g][1]}</p>`;
+  if(g==='speedtap')h+=`<button class=big data-a=tap>TAP!</button><p>TAPS <b id=tc>${me.taps}</b></p>`;
+  if(g==='dontred')h+=`<div class=g3>${pv.grid.map((r,i)=>`<button class="${r?'rd':'gn2'}" data-a=hit data-v=${i}>${r?'RED':'SAFE'}</button>`).join('')}</div>`;
+  if(g==='intruder'){const n=Math.sqrt(pv.grid.length);h+=`<div class=gn style="grid-template-columns:repeat(${n},1fr)">${pv.grid.map((c,i)=>`<button data-a=hit data-v=${i}>${c}</button>`).join('')}</div>`}
+  if(g==='memory')h+=show?`<div class=cd style="font-size:clamp(40px,12vw,100px)">${S.pub.seq.join(' ')}</div>`:pv.done?`<h2>LOCKED: ${pv.msg}</h2>`:`<h2>${inp.join(' ')||'…'}</h2>${SY.map(s=>`<button data-a=sym data-v=${s}>${s}</button>`).join('')}`;
+  if(g==='number'){h+=`<h2>TARGET: ${S.pub.target}</h2>`;h+=pv.done?`<h2>${pv.msg}</h2>`:S.pub.nums.map((n,i)=>`<button data-a=nm data-v=${i} aria-pressed="${sel.includes(i)}">${n}</button>`).join('')+`<br><button class=pri data-a=sub>SUBMIT (${sel.reduce((s,i)=>s+S.pub.nums[i],0)})</button>`}
+  if(g==='danger')h+=pv.done?`<h2>LOCKED: ${pv.msg}</h2><p>REVEAL WHEN TIME ENDS</p>`:['SAFE','RISK','CHAOS'].map(c=>`<button class=big style="min-height:90px;font-size:40px" data-a=ch data-v=${c}>${c}</button>`).join('')}
+ else if(S.phase==='result'){const n=(S.res||{}).notes||{};h=`<h2>ROUND ${S.round} RESULT</h2><table>${[...S.players].sort((a,b)=>b.rd-a.rd).map(p=>`<tr><td>${esc(p.name)}</td><td>${p.rd>0?'+':''}${p.rd}</td><td>${n[p.id]||''}</td></tr>`).join('')}</table><p>NEXT ROUND SOON…</p>`}
+ else{const r=[...S.players].sort((a,b)=>b.score-a.score),mx=(k)=>[...S.players].sort((a,b)=>b[k]-a[k])[0];
+  h=`<h1>🏆<br>WINNER</h1><h2>${r[0].av} ${esc(r[0].name)}</h2><h2>${r[0].score} POINTS</h2><div class=blk>${r.map((p,i)=>`<div>${['🥇','🥈','🥉'][i]} ${esc(p.name)} — ${p.score}</div>`).join('')}</div><div class=blk><div>HIGHEST SCORE: ${esc(r[0].name)}</div><div>BEST COMBO: ${esc(mx('best').name)} ×${mx('best').best}</div><div>MOST ROUNDS WON: ${esc(mx('wins').name)} (${mx('wins').wins})</div><div>BIGGEST ROUND: ${esc(mx('maxRd').name)} (+${mx('maxRd').maxRd})</div></div>${host?'<button class=pri data-a=rematch>REMATCH</button>':'<p>WAITING FOR HOST TO REMATCH…</p>'}<button data-a=leave>HOME</button>`}
+ st.innerHTML=h}
+sock.on('state',s=>{const pr=S;S=s;off=s.now-Date.now();if(s.phase==='intro'){sel=[];inp=[]}
+ if(pr&&pr.phase!==s.phase){if(s.phase==='results'){beep(660,.3);beep(990,.5);say('Match over')}if(s.phase==='result')beep(300,.2)}
+ if(s.phase==='play'&&(!pr||pr.phase!=='play'))say(N[s.game][0]+' started');route()});
+sock.on('pop',e=>{pend.push(e);beep(e.n>0?880:160,.12,e.n>0?'square':'sawtooth')});
+sock.on('combo',e=>beep(1200,.1));sock.on('broke',e=>{beep(120,.3,'sawtooth');say('Combo broken')});
+sock.on('react',e=>{rx[e.id]={t:e.t,u:Date.now()+2500};S&&board();setTimeout(()=>S&&board(),2600)});
+sock.on('kicked',()=>{S=null;go('/')});
+sock.on('connect',()=>{if(S){const t=localStorage.getItem('bb_'+S.code);t&&sock.emit('rejoin',{code:S.code,tok:t})}});
+setInterval(()=>{if(!S)return;const l=S.end-sn(),t=$('#timer'),c=$('#cd');if(t)t.textContent=Math.max(0,Math.ceil(l/1000))+'S';
+ if(c){const n=l>3000?'':l>0?Math.ceil(l/1000):'GO!';if(c.textContent!==String(n)){c.textContent=n;n!==''&&beep(n==='GO!'?880:440,.15)}}stage()},100);
+document.addEventListener('submit',e=>{if(e.target.id!=='f')return;e.preventDefault();const d=Object.fromEntries(new FormData(e.target));d.av=ar;const j=e.target.dataset.j==='1';
+ sock.emit(j?'join':'create',d,r=>{if(r.err)return $('#err').textContent=r.err;localStorage.setItem('bb_'+r.code,r.tok)})});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,v=b.dataset.v;beep(500,.04);
+ if(a==='go')go(v);else if(a==='av'){ar=v;document.querySelectorAll('[data-a=av]').forEach(x=>x.setAttribute('aria-pressed',x===b))}
+ else if(a==='snd'){snd=!snd;b.setAttribute('aria-pressed',snd);b.textContent='🔊 SOUND '+(snd?'ON':'OFF')}
+ else if(a==='leave'){localStorage.removeItem('bb_'+S.code);S=null;location.href='/'}
+ else if(['ready','start','rematch'].includes(a))sock.emit(a);
+ else if(a==='rx')sock.emit('react',v);
+ else if(a==='tap')sock.emit('act',{a:'tap'});
+ else if(a==='hit')sock.emit('act',{a:'hit',i:+v});
+ else if(a==='ch')sock.emit('act',{a:'ch',c:v});
+ else if(a==='sym'){inp.push(v);if(inp.length===5){sock.emit('act',{a:'seq',s:inp});inp=[]}stage(1)}
+ else if(a==='nm'){const i=+v;sel=sel.includes(i)?sel.filter(x=>x!==i):[...sel,i];stage(1)}
+ else if(a==='sub'){sock.emit('act',{a:'sum',s:sel});sel=[];stage(1)}});
+route();
+</script></body></html>
